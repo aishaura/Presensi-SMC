@@ -9,25 +9,17 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
     redirect('/login?error=' + encodeURIComponent('Email atau password salah'))
   }
 
-  // Cek role user buat nentuin redirect
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', data.user.id)
     .single()
 
-  if (profile?.role === 'admin') {
-    redirect('/admin')
-  }
-
-  redirect('/')
+  redirect(profile?.role === 'admin' ? '/admin' : '/dashboard')
 }
