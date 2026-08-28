@@ -69,34 +69,82 @@ export async function createEmployee(formData: FormData) {
 }
 
 export async function toggleUserStatus(userId: string, currentRole: string) {
-  const check = await ensureCallerIsAdmin()
-  if (!check.ok) return { error: check.error }
 
-  const adminClient = createAdminClient()
-  const isCurrentlyInactive = currentRole === 'inactive'
-  const newRole = isCurrentlyInactive ? 'employee' : 'inactive'
+  const supabaseAdmin = createAdminClient()
+  const isDeactivating = currentRole !== 'inactive'
 
-  // 1. Update kolom role (buat tampilan admin)
-  const { error: profileError } = await adminClient
-    .from('profiles')
-    .update({ role: newRole })
-    .eq('id', userId)
+  try {
+    // Update di Supabase Auth (Ban user jika dinonaktifkan)
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      {
+        ban_duration: isDeactivating ? '876600h' : 'none', // Ban 100 tahun atau lepas ban
+      }
+    )
 
-  if (profileError) {
-    return { error: 'Gagal mengubah status: ' + profileError.message }
+    if (authError) {
+      throw authError
+    }
+
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error toggling user status:', error)
+    return { error: error.message || 'Gagal mengubah status akun' }
+  }
+}
+
+export async function updateEmployee(formData: FormData) {
+  const userId = formData.get('userId') as string
+  const name = formData.get('name') as string
+  const email = formData.get('email') as string
+  const phone = formData.get('phone') as string
+  const role = formData.get('role') as string // 'employee' atau 'admin'
+
+  if (!userId || !name || !email || !role) {
+    return { error: 'ID User, Nama, Email, dan Role wajib diisi' }
   }
 
-  // 2. Ban/unban akun Auth-nya (biar beneran gak bisa login kalau nonaktif)
-  const { error: banError } = await adminClient.auth.admin.updateUserById(userId, {
-    ban_duration: isCurrentlyInactive ? 'none' : '876000h', // 'none' = unban, ~100 tahun = permanent ban
-  })
+  const supabaseAdmin = createAdminClient()
 
-  if (banError) {
-    // rollback role kalau ban gagal, biar data konsisten
-    await adminClient.from('profiles').update({ role: currentRole }).eq('id', userId)
-    return { error: 'Gagal mengubah status login: ' + banError.message }
+  try {
+    // Proteksi: Main admin (admin@saungmirza.com) tidak boleh diubah
+    const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+    if (targetUser?.user?.email === 'admin@saungmirza.com') {
+      return { error: 'Akun Sistem Utama (admin@saungmirza.com) tidak dapat diubah' }
+    }
+
+    // 1. Update di Supabase Auth (email)
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      {
+        email,
+        user_metadata: { name, phone },
+      }
+    )
+
+    if (authError) {
+      throw authError
+    }
+
+    // 2. Update di tabel profiles
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        name,
+        phone: phone || null,
+        role: role,
+      })
+      .eq('id', userId)
+
+    if (profileError) {
+      throw profileError
+    }
+
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error updating employee:', error)
+    return { error: error.message || 'Gagal memperbarui data karyawan' }
   }
-
-  revalidatePath('/admin/users')
-  return { data: { newRole } }
 }
