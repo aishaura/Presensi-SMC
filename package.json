@@ -2,9 +2,7 @@
   "name": "presensi-smc",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "test:wa": "tsx scripts/test-whatsapp.ts"
-  },
+
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.4",
@@ -24,5 +22,13 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
     "typescript": "^5"
+  },
+
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test:wa": "tsx scripts/test-whatsapp.ts"
   }
 }
