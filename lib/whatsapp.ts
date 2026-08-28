@@ -1,42 +1,28 @@
-export async function sendWhatsAppNotification(
-  phoneNumber: string,
-  message: string
-): Promise<boolean> {
-  const apiKey = process.env.FONNTE_API_TOKEN // Menggunakan Fonnte sebagai contoh penyedia API WA populer di Indonesia
-  
-  if (!apiKey || !phoneNumber) {
-    console.log(`[WhatsApp Mock] Mengirim pesan ke ${phoneNumber || 'tanpa nomor'}: \n"${message}"`)
-    return true
-  }
+export async function sendWhatsApp(message: string, target?: string): Promise<boolean> {
+  const target_number = target ?? process.env.ADMIN_WHATSAPP_NUMBER
 
   try {
-    // Normalisasi format nomor telepon (misal dari 08xx ke 62xx atau +62xx ke 62xx)
-    let formattedPhone = phoneNumber.replace(/[^0-9]/g, '')
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '62' + formattedPhone.slice(1)
-    }
-
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: {
-        Authorization: apiKey,
-        'Content-Type': 'application/json',
+        Authorization: process.env.FONNTE_TOKEN!,
       },
-      body: JSON.stringify({
-        target: formattedPhone,
-        message: message,
+      body: new URLSearchParams({
+        target: target_number!,
+        message,
       }),
     })
 
-    if (!response.ok) {
-      console.error('WhatsApp API response error:', response.statusText)
+    const result = await response.json()
+
+    if (!result.status) {
+      console.error('Fonnte error:', result)
       return false
     }
 
-    const result = await response.json()
-    return result.status === true
-  } catch (error) {
-    console.error('Gagal mengirim notifikasi WhatsApp:', error)
+    return true
+  } catch (err) {
+    console.error('Gagal kirim WhatsApp:', err)
     return false
   }
 }

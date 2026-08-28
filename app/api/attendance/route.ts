@@ -1,38 +1,49 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET() {
-  try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+export async function GET(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized / Belum Login' }, { status: 401 })
-    }
-
-    // Ambil tanggal local hari ini (YYYY-MM-DD)
-    const today = new Date()
-    const offset = today.getTimezoneOffset()
-    const localDate = new Date(today.getTime() - offset * 60 * 1000)
-    const todayStr = localDate.toISOString().split('T')[0]
-
-    const { data: attendance, error } = await supabase
-      .from('attendance')
-      .select('id, keterangan, check_in_time, check_out_time')
-      .eq('user_id', user.id)
-      .eq('date', todayStr)
-      .maybeSingle()
-
-    if (error) {
-      throw error
-    }
-
-    return NextResponse.json({ attendance })
-  } catch (error: any) {
-    console.error('Error fetching today attendance:', error)
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+  if (!user) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
+
+  const searchParams = request.nextUrl.searchParams
+  const date = searchParams.get('date')       
+  const startDate = searchParams.get('start') 
+  const endDate = searchParams.get('end')
+  const name = searchParams.get('name')       
+
+  let query = supabase
+    .from('attendance')
+    .select(`
+      id, user_id, date, keterangan,
+      check_in_time, check_in_address, check_in_image_url,
+      check_out_time, check_out_address, check_out_image_url,
+      profile:profiles(name, phone)
+    `)
+    .order('date', { ascending: false })
+
+  if (date) {
+    query = query.eq('date', date)
+  }
+  if (startDate) {
+    query = query.gte('date', startDate)
+  }
+  if (endDate) {
+    query = query.lte('date', endDate)
+  }
+  if (name) {
+    // filter by nama di tabel relasi, butuh cara sedikit beda di Supabase
+    query = query.ilike('profile.name', `%${name}%`)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 400 })
+  }
+
+  return NextResponse.json({ success: true, data })
 }
