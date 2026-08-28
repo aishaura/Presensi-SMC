@@ -24,9 +24,7 @@ export default async function AdminUsersPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
-    redirect('/')
-  }
+  if (profile?.role !== 'admin') redirect('/')
 
   const supabaseAdmin = createAdminClient()
 

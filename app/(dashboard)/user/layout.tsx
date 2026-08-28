@@ -8,24 +8,25 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
 
-  // Ambil data profil untuk mengetahui nama dan role
+  // Fetch profil lengkap sekaligus (role & nama)
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('full_name, role')
     .eq('id', user.id)
     .single()
 
+  if (profile?.role === 'inactive') {
+    await supabase.auth.signOut()
+    redirect('/login?error=Akun%20Anda%20telah%20dinonaktifkan')
+  }
+
+  // Definisikan variabel pendukung
+  const userName = profile?.full_name || user.email?.split('@')[0] || 'Pengguna'
   const isAdmin = profile?.role === 'admin'
-  const userName = profile?.name || user.email || 'User'
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
@@ -43,7 +44,7 @@ export default async function DashboardLayout({
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Pengguna</p>
             <p className="font-semibold text-white truncate text-sm mt-1">{userName}</p>
             <p className="text-xs text-slate-400 mt-0.5 capitalize bg-slate-700/50 inline-block px-1.5 py-0.5 rounded">
-              {profile?.role === 'admin' ? 'Admin / HR' : 'Magang / Karyawan'}
+              {isAdmin ? 'Admin / HR' : 'Magang / Karyawan'}
             </p>
           </div>
 
@@ -97,7 +98,7 @@ export default async function DashboardLayout({
 
         {/* Logout Section */}
         <div className="p-4 border-t border-slate-800">
-          <form action="/logout" method="POST">
+          <form action="/auth/logout" method="POST">
             <button
               type="submit"
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-red-950/40 text-red-400 hover:text-red-300 transition"

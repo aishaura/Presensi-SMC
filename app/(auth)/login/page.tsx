@@ -18,7 +18,7 @@ export default async function LoginPage({
       .eq('id', user.id)
       .single()
 
-    redirect(profile?.role === 'admin' ? '/admin' : '/dashboard')
+    redirect(profile?.role === 'admin' ? '/admin' : '/user')
   }
 
   const { error } = await searchParams
