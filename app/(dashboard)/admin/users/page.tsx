@@ -41,14 +41,15 @@ export default async function AdminUsersPage() {
   }
 
   // 4. Ambil data user dari auth menggunakan Admin Client
-  let authUsersMap: Record<string, string> = {}
+  let authUsersMap: Record<string, { email: string; isBanned: boolean }> = {}
   try {
     const { data: { users: authUsers }, error: authError } = await supabaseAdmin.auth.admin.listUsers()
     if (authError) throw authError
 
     authUsers.forEach((u) => {
       if (u.email) {
-        authUsersMap[u.id] = u.email
+        const isBanned = !!u.banned_until && new Date(u.banned_until) > new Date()
+        authUsersMap[u.id] = { email: u.email, isBanned }
       }
     })
   } catch (err) {
@@ -56,14 +57,17 @@ export default async function AdminUsersPage() {
   }
 
   // 5. Gabungkan data profile dan email auth
-  const mappedUsers = (profiles || []).map((p) => ({
-    id: p.id,
-    name: p.name,
-    phone: p.phone,
-    role: p.role,
-    email: authUsersMap[p.id] || p.email || '-', // Fallback jika tidak terpetakan
-    created_at: p.created_at || '',
-  }))
+  const mappedUsers = (profiles || []).map((p) => {
+    const authData = authUsersMap[p.id] || { email: p.email || '-', isBanned: false }
+    return {
+      id: p.id,
+      name: p.name,
+      phone: p.phone,
+      role: authData.isBanned ? 'inactive' : p.role,
+      email: authData.email,
+      created_at: p.created_at || '',
+    }
+  })
 
   return (
     <div className="space-y-6">
