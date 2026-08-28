@@ -98,7 +98,7 @@ export default async function DashboardLayout({
 
         {/* Logout Section */}
         <div className="p-4 border-t border-slate-800">
-          <form action="/auth/logout" method="POST">
+          <form action="/logout" method="POST">
             <button
               type="submit"
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-red-950/40 text-red-400 hover:text-red-300 transition"

@@ -19,5 +19,5 @@ export default async function RootPage() {
     redirect('/admin')
   }
 
-  redirect('/dashboard') // atau sesuaikan nama route dashboard karyawan kamu
+  redirect('/user') // atau sesuaikan nama route dashboard karyawan kamu
 }
