@@ -82,6 +82,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            suppressHydrationWarning
           />
         </div>
         <div>
@@ -92,6 +93,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             value={filterKeterangan}
             onChange={(e) => setFilterKeterangan(e.target.value)}
             className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            suppressHydrationWarning
           >
             <option value="Semua">Semua Keterangan</option>
             <option value="Hadir">Hadir</option>
@@ -108,6 +110,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
             className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            suppressHydrationWarning
           />
         </div>
       </div>

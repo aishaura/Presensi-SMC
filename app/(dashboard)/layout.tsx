@@ -15,7 +15,7 @@ export default async function DashboardLayout({
   // Fetch profil lengkap sekaligus (role & nama)
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, role')
+    .select('name, role')
     .eq('id', user.id)
     .single()
 
@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   }
 
   // Definisikan variabel pendukung
-  const userName = profile?.full_name || user.email?.split('@')[0] || 'Pengguna'
+  const userName = profile?.name || user.email?.split('@')[0] || 'Pengguna'
   const isAdmin = profile?.role === 'admin'
 
   return (
