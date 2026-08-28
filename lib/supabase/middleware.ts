@@ -40,5 +40,29 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Proteksi akun nonaktif: jika user terdeteksi nonaktif, hapus session dan redirect ke login
+  if (user && !request.nextUrl.pathname.startsWith('/login')) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role === 'inactive') {
+      await supabase.auth.signOut()
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('error', 'Akun Anda dinonaktifkan oleh Admin')
+      const redirectResponse = NextResponse.redirect(url)
+      // Bersihkan cookie session Supabase
+      request.cookies.getAll().forEach((c) => {
+        if (c.name.startsWith('sb-')) {
+          redirectResponse.cookies.delete(c.name)
+        }
+      })
+      return redirectResponse
+    }
+  }
+
   return supabaseResponse
 }
