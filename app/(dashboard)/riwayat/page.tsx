@@ -88,7 +88,7 @@ export default async function HistoryPage() {
                     </td>
                     <td className="px-6 py-4 space-y-1">
                       <div className="font-semibold text-gray-800">{formatTime(rec.check_in_time)}</div>
-                      <div className="text-xs text-gray-400 max-w-[200px] truncate" title={rec.check_in_address || ''}>
+                      <div className="text-xs text-gray-400 max-w-50 truncate" title={rec.check_in_address || ''}>
                         {rec.check_in_address || '-'}
                       </div>
                       {rec.check_in_image_url && (
@@ -106,7 +106,7 @@ export default async function HistoryPage() {
                       {rec.check_out_time ? (
                         <>
                           <div className="font-semibold text-gray-800">{formatTime(rec.check_out_time)}</div>
-                          <div className="text-xs text-gray-400 max-w-[200px] truncate" title={rec.check_out_address || ''}>
+                          <div className="text-xs text-gray-400 max-w-50 truncate" title={rec.check_out_address || ''}>
                             {rec.check_out_address || '-'}
                           </div>
                           {rec.check_out_image_url && (

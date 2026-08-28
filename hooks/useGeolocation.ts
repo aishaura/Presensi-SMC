@@ -1,60 +1,54 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
-interface Coords {
-  latitude: number
-  longitude: number
+interface GeoState {
+  lat: number | null
+  lng: number | null
+  loading: boolean
+  error: string | null
 }
 
 export function useGeolocation() {
-  const [coords, setCoords] = useState<Coords | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [state, setState] = useState<GeoState>({
+    lat: null,
+    lng: null,
+    loading: false,
+    error: null,
+  })
 
-  const getLocation = (): Promise<Coords> => {
+  const getLocation = useCallback((): Promise<{ lat: number; lng: number }> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        const errorMsg = 'Geolocation tidak didukung oleh browser Anda'
-        setError(errorMsg)
-        reject(errorMsg)
+        const error = 'Browser tidak mendukung geolokasi'
+        setState((s) => ({ ...s, error, loading: false }))
+        reject(new Error(error))
         return
       }
 
-      setLoading(true)
-      setError(null)
+      setState((s) => ({ ...s, loading: true, error: null }))
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const newCoords = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }
-          setCoords(newCoords)
-          setLoading(false)
-          resolve(newCoords)
+          const lat = position.coords.latitude
+          const lng = position.coords.longitude
+          setState({ lat, lng, loading: false, error: null })
+          resolve({ lat, lng })
         },
         (err) => {
-          let errorMsg = 'Gagal mengambil lokasi'
+          let message = 'Gagal mengambil lokasi'
           if (err.code === err.PERMISSION_DENIED) {
-            errorMsg = 'Izin akses lokasi ditolak oleh pengguna'
-          } else if (err.code === err.POSITION_UNAVAILABLE) {
-            errorMsg = 'Informasi lokasi tidak tersedia'
+            message = 'Izin lokasi ditolak. Aktifkan akses lokasi di browser.'
           } else if (err.code === err.TIMEOUT) {
-            errorMsg = 'Waktu permintaan lokasi habis'
+            message = 'Waktu pengambilan lokasi habis, coba lagi.'
           }
-          setError(errorMsg)
-          setLoading(false)
-          reject(errorMsg)
+          setState((s) => ({ ...s, loading: false, error: message }))
+          reject(new Error(message))
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       )
     })
-  }
+  }, [])
 
-  return { coords, loading, error, getLocation }
+  return { ...state, getLocation }
 }

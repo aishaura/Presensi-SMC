@@ -21,5 +21,5 @@ export async function login(formData: FormData) {
     .eq('id', data.user.id)
     .single()
 
-  redirect(profile?.role === 'admin' ? '/admin' : '/dashboard')
+  redirect(profile?.role === 'admin' ? '/admin' : '/user')
 }
