@@ -3,14 +3,13 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  // Proteksi: cuma Vercel Cron yang boleh manggil endpoint ini
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const supabase = createAdminClient() // pakai service_role, bypass RLS, ambil semua data
+    const supabase = createAdminClient()
 
     const today = new Date()
     const offset = today.getTimezoneOffset()
@@ -20,10 +19,10 @@ export async function GET(request: NextRequest) {
     const { data: attendances, error } = await supabase
       .from('attendance')
       .select(`
-  keterangan, check_in_time, check_out_time,
-  check_in_address, check_out_image_url,
-  profile:profiles(name)
-`)
+        keterangan, check_in_time, check_out_time,
+        check_out_address, check_out_image_url,
+        profile:profiles(name)
+      `)
       .eq('date', todayStr)
       .order('check_in_time', { ascending: true })
 
@@ -52,16 +51,23 @@ function formatRecapMessage(date: string, records: any[]): string {
     const checkIn = r.check_in_time
       ? new Date(r.check_in_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
       : '-'
+
+    // Izin: format ringkas, gak perlu jam pulang/lokasi/foto
+    if (r.keterangan === 'Izin') {
+      return `${i + 1}. *${name}* — Izin (diajukan pukul ${checkIn})`
+    }
+
     const checkOut = r.check_out_time
       ? new Date(r.check_out_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
       : 'Belum check-out'
 
     let entry = `${i + 1}. *${name}* (${r.keterangan})\n   In: ${checkIn} | Out: ${checkOut}`
-    if (r.check_in_image_url) {
-      entry += `\n   📷 Bukti masuk: ${r.check_in_image_url}`
+
+    if (r.check_out_address) {
+      entry += `\n   📍 ${r.check_out_address}`
     }
     if (r.check_out_image_url) {
-      entry += `\n   📷 Bukti pulang: ${r.check_out_image_url}`
+      entry += `\n   📷 Bukti: ${r.check_out_image_url}`
     }
     return entry
   })

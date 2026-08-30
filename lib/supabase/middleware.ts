@@ -33,7 +33,8 @@ export async function updateSession(request: NextRequest) {
   // Proteksi route: kalau belum login dan bukan di /login, redirect ke /login
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login')
+    !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/api/')
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
