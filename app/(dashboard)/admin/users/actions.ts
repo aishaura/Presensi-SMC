@@ -148,3 +148,53 @@ export async function updateEmployee(formData: FormData) {
     return { error: error.message || 'Gagal memperbarui data karyawan' }
   }
 }
+
+export async function deleteEmployee(userId: string) {
+  if (!userId) {
+    return { error: 'ID User wajib diisi' }
+  }
+
+  const supabaseAdmin = createAdminClient()
+
+  try {
+    // Proteksi: Main admin (admin@saungmirza.com) tidak boleh dihapus
+    const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+    if (targetUser?.user?.email === 'admin@saungmirza.com') {
+      return { error: 'Akun Sistem Utama (admin@saungmirza.com) tidak dapat dihapus' }
+    }
+
+    // 1. Hapus riwayat presensi dari tabel attendance
+    const { error: attendanceError } = await supabaseAdmin
+      .from('attendance')
+      .delete()
+      .eq('user_id', userId)
+
+    if (attendanceError) {
+      throw attendanceError
+    }
+
+    // 2. Hapus profil dari tabel profiles
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', userId)
+
+    if (profileError) {
+      throw profileError
+    }
+
+    // 3. Hapus user dari Supabase Auth
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+    if (authError) {
+      throw authError
+    }
+
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error deleting employee:', error)
+    return { error: error.message || 'Gagal menghapus akun karyawan' }
+  }
+}
+

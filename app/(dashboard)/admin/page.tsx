@@ -63,7 +63,7 @@ if (profile?.role !== 'admin') {
       countHadir++
     } else if (rec.keterangan === 'WFH/WFA') {
       countWfhWfa++
-    } else if (rec.keterangan.startsWith('Izin')) {
+    } else if (rec.keterangan?.startsWith('Izin')) {
       countIzin++
     }
   })
