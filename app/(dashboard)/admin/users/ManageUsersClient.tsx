@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createEmployee, toggleUserStatus, updateEmployee } from './actions'
+import { createEmployee, toggleUserStatus, updateEmployee, deleteEmployee } from './actions'
 
 interface UserItem {
   id: string
@@ -141,6 +141,23 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
     }
   }
 
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus akun "${userName}" secara permanen? Seluruh riwayat presensi terkait juga akan dihapus.`)) {
+      return
+    }
+
+    setLoading(userId)
+    const res = await deleteEmployee(userId)
+    setLoading(null)
+
+    if (res.error) {
+      alert(res.error)
+    } else {
+      alert(`Akun "${userName}" berhasil dihapus secara permanen.`)
+      setUsers((prev) => prev.filter((u) => u.id !== userId))
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Controls */}
@@ -244,6 +261,13 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
                                 : 'Nonaktifkan Akun'}
                             </button>
                           )}
+                          <button
+                            disabled={loading === u.id}
+                            onClick={() => handleDeleteUser(u.id, u.name)}
+                            className="font-semibold text-red-600 hover:text-red-800 hover:underline text-xs disabled:opacity-50"
+                          >
+                            {loading === u.id ? 'Memproses...' : 'Hapus'}
+                          </button>
                         </>
                       )}
                     </td>
