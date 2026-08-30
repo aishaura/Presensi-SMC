@@ -1,5 +1,5 @@
 export type Role = 'employee' | 'admin'
-export type Keterangan = 'Hadir' | 'Izin' | 'WFA' | 'WFH'
+export type Keterangan = 'Hadir' | 'Izin' | 'WFA/WFH'
 
 export interface Profile {
   id: string
@@ -12,22 +12,17 @@ export interface Profile {
 export interface Attendance {
   id: string
   user_id: string
-  date: string // format: YYYY-MM-DD
-
-  keterangan: Keterangan
-
-  check_in_time: string | null // ISO timestamp
+  date: string
+  keterangan: Keterangan | null // null selama belum check-out
+  check_in_time: string | null
   check_in_lat: number | null
   check_in_lng: number | null
   check_in_address: string | null
-  check_in_image_url: string | null // link Google Drive
-
   check_out_time: string | null
   check_out_lat: number | null
   check_out_lng: number | null
   check_out_address: string | null
-  check_out_image_url: string | null
-
+  check_out_image_url: string | null // foto sekarang cuma di check-out
   created_at: string
 }
 

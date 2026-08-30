@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { reverseGeocode } from '@/lib/geocode'
 import { getRandomQuote } from '@/lib/quotes'
-import { uploadToDrive } from '@/lib/google-drive'
 import { NextRequest, NextResponse } from 'next/server'
+
+const VALID_KETERANGAN = ['Hadir', 'Izin', 'WFA/WFH']
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,23 +14,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const formData = await request.formData()
-    const lat = parseFloat(formData.get('lat') as string)
-    const lng = parseFloat(formData.get('lng') as string)
-    const keterangan = formData.get('keterangan') as string
-    const image = formData.get('image') as File
+    const body = await request.json()
+    const keterangan = body.keterangan as string
 
-    if (isNaN(lat) || isNaN(lng) || !keterangan || !image) {
-      return NextResponse.json({ success: false, error: 'Data formulir tidak lengkap' }, { status: 400 })
+    if (!keterangan || !VALID_KETERANGAN.includes(keterangan)) {
+      return NextResponse.json({ success: false, error: 'Keterangan wajib dipilih' }, { status: 400 })
     }
 
-    // Tanggal lokal hari ini (YYYY-MM-DD)
+    const isIzin = keterangan === 'Izin'
+
+    // Lokasi cuma wajib kalau BUKAN izin
+    let lat: number | null = null
+    let lng: number | null = null
+    let address: string | null = null
+
+    if (!isIzin) {
+      lat = parseFloat(body.lat)
+      lng = parseFloat(body.lng)
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return NextResponse.json({ success: false, error: 'Lokasi tidak valid' }, { status: 400 })
+      }
+      address = await reverseGeocode(lat, lng)
+    }
+
     const today = new Date()
     const offset = today.getTimezoneOffset()
     const localDate = new Date(today.getTime() - offset * 60 * 1000)
     const todayStr = localDate.toISOString().split('T')[0]
 
-    // Cek udah check-in belum hari ini
     const { data: existingCheck } = await supabase
       .from('attendance')
       .select('id')
@@ -39,19 +52,10 @@ export async function POST(request: NextRequest) {
 
     if (existingCheck) {
       return NextResponse.json(
-        { success: false, error: 'Anda sudah melakukan check-in hari ini' },
+        { success: false, error: 'Anda sudah melakukan presensi hari ini' },
         { status: 409 }
       )
     }
-
-    const address = await reverseGeocode(lat, lng)
-
-    const buffer = Buffer.from(await image.arrayBuffer())
-    const { webViewLink } = await uploadToDrive(
-      buffer,
-      `checkin_${user.id}_${Date.now()}.jpg`,
-      image.type
-    )
 
     const now = new Date().toISOString()
 
@@ -65,31 +69,25 @@ export async function POST(request: NextRequest) {
         check_in_lat: lat,
         check_in_lng: lng,
         check_in_address: address,
-        check_in_image_url: webViewLink,
+        // Kalau izin, langsung tandai check-out juga di waktu yang sama
+        // biar sistem tau hari ini "selesai", gak perlu tunggu checkout manual
+        ...(isIzin && { check_out_time: now }),
       })
       .select()
       .single()
 
     if (dbError) {
-      console.error('Database insert error:', dbError)
       return NextResponse.json(
         { success: false, error: 'Gagal mencatat presensi: ' + dbError.message },
         { status: 500 }
       )
     }
 
-    // Catatan: notifikasi WA TIDAK dikirim di sini.
-    // WA hanya dikirim sekali sehari lewat cron job (lihat app/api/cron/daily-recap/route.ts)
-
     const quote = getRandomQuote()
 
     return NextResponse.json({
       success: true,
-      data: {
-        checkInTime: now,
-        address,
-        imageUrl: webViewLink,
-      },
+      data: { checkInTime: now, address, isIzin },
       attendance: newAttendance,
       quote,
     })

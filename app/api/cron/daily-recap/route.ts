@@ -20,10 +20,10 @@ export async function GET(request: NextRequest) {
     const { data: attendances, error } = await supabase
       .from('attendance')
       .select(`
-        keterangan, check_in_time, check_out_time,
-        check_in_address, check_in_image_url, check_out_image_url,
-        profile:profiles(name)
-      `)
+  keterangan, check_in_time, check_out_time,
+  check_in_address, check_out_image_url,
+  profile:profiles(name)
+`)
       .eq('date', todayStr)
       .order('check_in_time', { ascending: true })
 
