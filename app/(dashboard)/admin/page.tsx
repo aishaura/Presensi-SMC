@@ -87,6 +87,7 @@ if (profile?.role !== 'admin') {
     check_out_lng,
     check_out_address,
     check_out_image_url,
+    progress_note,
     profiles!attendance_user_id_fkey (
       name,
       phone

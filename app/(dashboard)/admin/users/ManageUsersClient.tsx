@@ -167,7 +167,7 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
           placeholder="Cari nama atau email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:max-w-xs border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="w-full sm:max-w-xs border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
         />
 
         <button
@@ -186,7 +186,7 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <tr className="bg-gray-50 border-b text-xs font-bold text-gray-800 uppercase tracking-wider">
                 <th className="px-6 py-4">Nama</th>
                 <th className="px-6 py-4">Kontak</th>
                 <th className="px-6 py-4">Role</th>
@@ -197,7 +197,7 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
             <tbody className="text-sm divide-y text-gray-600">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-600 font-medium">
                     Tidak ada akun ditemukan
                   </td>
                 </tr>
@@ -206,11 +206,11 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
                   <tr key={u.id} className="hover:bg-gray-50/50">
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">{u.name}</div>
-                      <div className="text-xs text-gray-400">{u.id}</div>
+                      <div className="text-xs text-gray-600 font-bold">{u.id}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-800">{u.email}</div>
-                      <div className="text-xs text-gray-400">{u.phone || '-'}</div>
+                      <div className="text-xs text-gray-700 font-bold">{u.phone || '-'}</div>
                     </td>
                     <td className="px-6 py-4 capitalize">
                       <span

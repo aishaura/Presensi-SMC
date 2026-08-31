@@ -53,7 +53,7 @@ export default async function HistoryPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <tr className="bg-gray-50 border-b text-xs font-bold text-gray-800 uppercase tracking-wider">
                 <th className="px-6 py-4">Tanggal</th>
                 <th className="px-6 py-4">Keterangan</th>
                 <th className="px-6 py-4">Check In</th>
@@ -63,7 +63,7 @@ export default async function HistoryPage() {
             <tbody className="text-sm divide-y text-gray-600">
               {!records || records.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-650 font-medium">
                     Belum ada riwayat presensi tercatat.
                   </td>
                 </tr>
@@ -87,8 +87,8 @@ export default async function HistoryPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 space-y-1">
-                      <div className="font-semibold text-gray-800">{formatTime(rec.check_in_time)}</div>
-                      <div className="text-xs text-gray-400 max-w-50 truncate" title={rec.check_in_address || ''}>
+                      <div className="font-bold text-gray-900">{formatTime(rec.check_in_time)}</div>
+                      <div className="text-xs text-gray-650 font-semibold max-w-50 truncate" title={rec.check_in_address || ''}>
                         {rec.check_in_address || '-'}
                       </div>
                       {rec.check_in_image_url && (
@@ -105,8 +105,8 @@ export default async function HistoryPage() {
                     <td className="px-6 py-4 space-y-1">
                       {rec.check_out_time ? (
                         <>
-                          <div className="font-semibold text-gray-800">{formatTime(rec.check_out_time)}</div>
-                          <div className="text-xs text-gray-400 max-w-50 truncate" title={rec.check_out_address || ''}>
+                          <div className="font-bold text-gray-900">{formatTime(rec.check_out_time)}</div>
+                          <div className="text-xs text-gray-650 font-semibold max-w-50 truncate" title={rec.check_out_address || ''}>
                             {rec.check_out_address || '-'}
                           </div>
                           {rec.check_out_image_url && (
@@ -121,7 +121,7 @@ export default async function HistoryPage() {
                           )}
                         </>
                       ) : (
-                        <span className="text-xs text-gray-400 italic">Belum Check-out</span>
+                        <span className="text-xs text-gray-650 font-bold italic">Belum Check-out</span>
                       )}
                     </td>
                   </tr>
