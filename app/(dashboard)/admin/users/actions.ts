@@ -94,6 +94,27 @@ export async function toggleUserStatus(userId: string, currentRole: string) {
   }
 }
 
+export async function resetUserPassword(userId: string, newPassword: string) {
+  const check = await ensureCallerIsAdmin()
+  if (!check.ok) return { error: check.error }
+
+  if (newPassword.length < 6) {
+    return { error: 'Password minimal 6 karakter' }
+  }
+
+  const adminClient = createAdminClient()
+
+  const { error } = await adminClient.auth.admin.updateUserById(userId, {
+    password: newPassword,
+  })
+
+  if (error) {
+    return { error: 'Gagal mengubah password: ' + error.message }
+  }
+
+  return { data: { success: true } }
+}
+
 export async function updateEmployee(formData: FormData) {
   const userId = formData.get('userId') as string
   const name = formData.get('name') as string

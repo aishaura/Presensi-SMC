@@ -1,7 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { createEmployee, toggleUserStatus, updateEmployee, deleteEmployee } from './actions'
+import {
+  createEmployee,
+  toggleUserStatus,
+  updateEmployee,
+  deleteEmployee,
+  resetUserPassword,
+} from './actions'
 
 interface UserItem {
   id: string
@@ -40,6 +46,11 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
   const [editRole, setEditRole] = useState('employee')
   const [editFormLoading, setEditFormLoading] = useState(false)
   const [editFormError, setEditFormError] = useState<string | null>(null)
+
+  // Reset Password State
+  const [newPassword, setNewPassword] = useState('')
+  const [showPasswordField, setShowPasswordField] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
 
   // Custom Alert / Modal State
   const [alert, setAlert] = useState<{
@@ -81,6 +92,8 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
     setEditPhone(user.phone || '')
     setEditRole(user.role === 'admin' ? 'admin' : 'employee')
     setEditFormError(null)
+    setNewPassword('')
+    setShowPasswordField(false)
     setShowEditModal(true)
   }
 
@@ -174,6 +187,26 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
       )
       setShowEditModal(false)
       showSuccess('Berhasil', 'Data karyawan/admin berhasil diperbarui!')
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!editingUser) return
+    if (newPassword.length < 6) {
+      setEditFormError('Password baru minimal 6 karakter')
+      return
+    }
+
+    setPasswordLoading(true)
+    const res = await resetUserPassword(editingUser.id, newPassword)
+    setPasswordLoading(false)
+
+    if (res.error) {
+      setEditFormError(res.error)
+    } else {
+      setNewPassword('')
+      setShowPasswordField(false)
+      showSuccess('Berhasil', 'Password berhasil diperbarui.')
     }
   }
 
@@ -541,6 +574,52 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
                 </select>
               </div>
 
+              {/* Reset Password Section */}
+              <div className="pt-4 border-t space-y-3">
+                {!showPasswordField ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordField(true)}
+                    className="text-sm text-blue-600 hover:underline font-semibold"
+                  >
+                    Ganti Password Akun
+                  </button>
+                ) : (
+                  <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
+                      Password Baru
+                    </label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter"
+                      className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+                    />
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPasswordField(false)
+                          setNewPassword('')
+                        }}
+                        className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 transition"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResetPassword}
+                        disabled={passwordLoading}
+                        className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition disabled:opacity-50"
+                      >
+                        {passwordLoading ? 'Menyimpan...' : 'Update Password'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="pt-4 flex items-center gap-3 border-t">
                 <button
                   type="button"
@@ -577,7 +656,6 @@ export default function ManageUsersClient({ initialUsers }: ManageUsersClientPro
             <div className="flex gap-3 pt-2">
               {alert.type === 'confirm' ? (
                 <>
-                  {/* Tombol Batal Alert yang Diperjelas */}
                   <button
                     type="button"
                     onClick={closeAlert}
