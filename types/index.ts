@@ -24,6 +24,7 @@ export interface Attendance {
   check_out_address: string | null
   check_out_image_url: string | null // foto sekarang cuma di check-out
   created_at: string
+  progress_note: string | null
 }
 
 // Attendance yang di-join dengan nama user, dipakai di tabel admin

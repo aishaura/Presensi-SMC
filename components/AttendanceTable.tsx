@@ -161,13 +161,13 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-800">{formatTime(rec.check_in_time)}</div>
-                      <div className="text-xs text-gray-400 truncate max-w-[180px]" title={rec.check_in_address || ''}>
+                      <div className="text-xs text-gray-400 truncate max-w-45" title={rec.check_in_address || ''}>
                         {rec.check_in_address || '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-800">{formatTime(rec.check_out_time)}</div>
-                      <div className="text-xs text-gray-400 truncate max-w-[180px]" title={rec.check_out_address || ''}>
+                      <div className="text-xs text-gray-400 truncate max-w-45" title={rec.check_out_address || ''}>
                         {rec.check_out_address || '-'}
                       </div>
                     </td>

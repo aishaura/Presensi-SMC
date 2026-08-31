@@ -4,6 +4,9 @@ import { reverseGeocode } from '@/lib/geocode'
 import { getRandomQuote } from '@/lib/quotes'
 import { NextRequest, NextResponse } from 'next/server'
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024
+const MAX_NOTE_LENGTH = 500
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -17,12 +20,31 @@ export async function POST(request: NextRequest) {
     const lat = parseFloat(formData.get('lat') as string)
     const lng = parseFloat(formData.get('lng') as string)
     const image = formData.get('image') as File
+    const progressNote = (formData.get('progressNote') as string)?.trim()
 
     if (isNaN(lat) || isNaN(lng)) {
       return NextResponse.json({ success: false, error: 'Lokasi tidak valid' }, { status: 400 })
     }
     if (!image) {
       return NextResponse.json({ success: false, error: 'Foto bukti progres wajib diunggah' }, { status: 400 })
+    }
+    if (image.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: 'Ukuran foto maksimal 5MB' },
+        { status: 400 }
+      )
+    }
+    if (!image.type.startsWith('image/')) {
+      return NextResponse.json({ success: false, error: 'File harus berupa gambar' }, { status: 400 })
+    }
+    if (!progressNote) {
+      return NextResponse.json({ success: false, error: 'Keterangan progres wajib diisi' }, { status: 400 })
+    }
+    if (progressNote.length > MAX_NOTE_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'Keterangan progres maksimal 500 karakter' },
+        { status: 400 }
+      )
     }
 
     const today = new Date()
@@ -75,6 +97,7 @@ export async function POST(request: NextRequest) {
         check_out_lng: lng,
         check_out_address: address,
         check_out_image_url: webViewLink,
+        progress_note: progressNote,
       })
       .eq('id', existing.id)
 
@@ -86,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { checkOutTime: now, address, imageUrl: webViewLink },
+      data: { checkOutTime: now, address, imageUrl: webViewLink, progressNote },
       quote,
     })
   } catch (err: any) {

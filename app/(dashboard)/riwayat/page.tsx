@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import ProgressDetailModal from './ProgresDetailModal'
 
-export const revalidate = 0 // Disable cache agar riwayat selalu fresh
+export const revalidate = 0
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -14,7 +15,6 @@ export default async function HistoryPage() {
     redirect('/login')
   }
 
-  // Ambil riwayat presensi user ini
   const { data: records, error } = await supabase
     .from('attendance')
     .select('*')
@@ -27,6 +27,7 @@ export default async function HistoryPage() {
 
   const formatTime = (isoString: string | null) => {
     if (!isoString) return '-'
+
     return new Date(isoString).toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit',
@@ -44,89 +45,203 @@ export default async function HistoryPage() {
 
   return (
     <div className="space-y-6">
+
+      {/* Header */}
       <div className="space-y-1">
-        <h2 className="text-2xl font-bold text-gray-900">Riwayat Presensi</h2>
-        <p className="text-sm text-gray-500">Daftar kehadiran Anda di Saung Mirza Community.</p>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Riwayat Presensi
+        </h2>
+
+        <p className="text-sm text-gray-500">
+          Daftar kehadiran Anda di Saung Mirza Community.
+        </p>
       </div>
 
+      {/* Table */}
       <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
+
+            {/* Table Header */}
             <thead>
               <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="px-6 py-4">Tanggal</th>
-                <th className="px-6 py-4">Keterangan</th>
-                <th className="px-6 py-4">Check In</th>
-                <th className="px-6 py-4">Check Out</th>
+
+                <th className="px-6 py-4">
+                  Tanggal
+                </th>
+
+                <th className="px-6 py-4">
+                  Keterangan
+                </th>
+
+                <th className="px-6 py-4">
+                  Check In
+                </th>
+
+                <th className="px-6 py-4">
+                  Check Out
+                </th>
+
+                <th className="px-6 py-4">
+                  Progress
+                </th>
+
               </tr>
             </thead>
+
+            {/* Table Body */}
             <tbody className="text-sm divide-y text-gray-600">
+
               {!records || records.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-400">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
                     Belum ada riwayat presensi tercatat.
                   </td>
                 </tr>
               ) : (
-                records.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 font-semibold text-gray-900">
-                      {formatDate(rec.date)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          rec.keterangan.startsWith('Izin')
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : rec.keterangan === 'WFH/WFA'
-                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                            : 'bg-green-50 text-green-700 border border-green-200'
-                        }`}
-                      >
-                        {rec.keterangan}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 space-y-1">
-                      <div className="font-semibold text-gray-800">{formatTime(rec.check_in_time)}</div>
-                      <div className="text-xs text-gray-400 max-w-50 truncate" title={rec.check_in_address || ''}>
-                        {rec.check_in_address || '-'}
-                      </div>
-                      {rec.check_in_image_url && (
-                        <a
-                          href={rec.check_in_image_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block text-xs text-blue-600 hover:underline"
+                records.map((rec) => {
+
+                  const isIzin = rec.keterangan === 'Izin'
+                  const isWfaWfh = rec.keterangan === 'WFA/WFH'
+
+                  return (
+                    <tr
+                      key={rec.id}
+                      className="hover:bg-gray-50/50"
+                    >
+
+                      {/* Tanggal */}
+                      <td className="px-6 py-4 font-semibold text-gray-900 whitespace-nowrap">
+                        {formatDate(rec.date)}
+                      </td>
+
+                      {/* Keterangan */}
+                      <td className="px-6 py-4">
+                        <span
+                          className={
+                            isIzin
+                              ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200'
+                              : isWfaWfh
+                                ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200'
+                                : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200'
+                          }
                         >
-                          Lihat Foto Bukti
-                        </a>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 space-y-1">
-                      {rec.check_out_time ? (
-                        <>
-                          <div className="font-semibold text-gray-800">{formatTime(rec.check_out_time)}</div>
-                          <div className="text-xs text-gray-400 max-w-50 truncate" title={rec.check_out_address || ''}>
-                            {rec.check_out_address || '-'}
+                          {rec.keterangan}
+                        </span>
+                      </td>
+
+                      {/* Check In */}
+                      <td className="px-6 py-4 space-y-1">
+                        <div className="font-semibold text-gray-800">
+                          {formatTime(rec.check_in_time)}
+                        </div>
+
+                        {!isIzin && (
+                          <div
+                            className="text-xs text-gray-400 max-w-50 truncate"
+                            title={rec.check_in_address || ''}
+                          >
+                            {rec.check_in_address || '-'}
                           </div>
-                          {rec.check_out_image_url && (
-                            <a
-                              href={rec.check_out_image_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block text-xs text-blue-600 hover:underline"
+                        )}
+                      </td>
+
+                      {/* Check Out */}
+                      <td className="px-6 py-4 space-y-1">
+
+                        {isIzin ? (
+
+                          <span className="text-xs text-gray-400 italic">
+                            Tidak ada check-out (Izin)
+                          </span>
+
+                        ) : rec.check_out_time ? (
+
+                          <>
+                            <div className="font-semibold text-gray-800">
+                              {formatTime(rec.check_out_time)}
+                            </div>
+
+                            <div
+                              className="text-xs text-gray-400 max-w-50 truncate"
+                              title={rec.check_out_address || ''}
                             >
-                              Lihat Foto Progres
-                            </a>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-400 italic">Belum Check-out</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                              {rec.check_out_address || '-'}
+                            </div>
+
+                            {/* Foto Progress */}
+                            {rec.check_out_image_url ? (
+                              <a
+                                href={rec.check_out_image_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block text-xs text-blue-600 hover:underline"
+                              >
+                                Lihat Foto Progres
+                              </a>
+                            ) : (
+                              <span className="text-xs text-gray-400">
+                                Tidak ada foto
+                              </span>
+                            )}
+                          </>
+
+                        ) : (
+
+                          <span className="text-xs text-gray-400 italic">
+                            Belum Check-out
+                          </span>
+
+                        )}
+
+                      </td>
+
+                      {/* Progress */}
+                      <td className="px-6 py-4">
+
+                        {isIzin ? (
+
+                          <span className="text-xs text-gray-400 italic">
+                            -
+                          </span>
+
+                        ) : rec.progress_note ? (
+
+                          <div className="space-y-1">
+
+                            {/* Preview progress */}
+                            <div
+                              className="max-w-52 truncate text-sm text-gray-600"
+                              title={rec.progress_note}
+                            >
+                              {rec.progress_note}
+                            </div>
+
+                            {/* Tombol popup */}
+                            <ProgressDetailModal
+                              progressNote={rec.progress_note}
+                            />
+
+                          </div>
+
+                        ) : (
+
+                          <span className="text-xs text-gray-400 italic">
+                            Belum ada catatan
+                          </span>
+
+                        )}
+
+                      </td>
+
+                    </tr>
+                  )
+                })
               )}
+
             </tbody>
           </table>
         </div>
