@@ -1,4 +1,4 @@
-import { uploadToGoogleDrive } from '@/lib/google-drive'
+import { uploadToDrive } from '@/lib/google-drive'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     
-    const driveUrl = await uploadToGoogleDrive(
+    const driveUrl = await uploadToDrive(
       buffer,
       `${Date.now()}_${file.name}`,
       file.type
