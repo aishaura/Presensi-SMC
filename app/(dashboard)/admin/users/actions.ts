@@ -6,7 +6,9 @@ import { revalidatePath } from 'next/cache'
 
 async function ensureCallerIsAdmin() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) return { ok: false, error: 'Unauthorized' }
 
@@ -69,21 +71,38 @@ export async function createEmployee(formData: FormData) {
 }
 
 export async function toggleUserStatus(userId: string, currentRole: string) {
+  const check = await ensureCallerIsAdmin()
+  if (!check.ok) return { error: check.error }
 
   const supabaseAdmin = createAdminClient()
-  const isDeactivating = currentRole !== 'inactive'
 
   try {
-    // Update di Supabase Auth (Ban user jika dinonaktifkan)
-    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
-      {
-        ban_duration: isDeactivating ? '876600h' : 'none', // Ban 100 tahun atau lepas ban
-      }
-    )
+    // Proteksi: Main admin tidak boleh dinonaktifkan
+    const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+    if (targetUser?.user?.email === 'admin@saungmirza.com') {
+      return { error: 'Akun Sistem Utama (admin@saungmirza.com) tidak dapat dinonaktifkan' }
+    }
+
+    const isDeactivating = currentRole !== 'inactive'
+    const newRole = isDeactivating ? 'inactive' : 'employee'
+
+    // 1. Update di Supabase Auth (Ban / Unban)
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      ban_duration: isDeactivating ? '876600h' : 'none', // Ban 100 tahun atau lepas ban
+    })
 
     if (authError) {
       throw authError
+    }
+
+    // 2. Update role di tabel profiles agar sinkron di Database & UI
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', userId)
+
+    if (profileError) {
+      throw profileError
     }
 
     revalidatePath('/admin/users')
@@ -116,6 +135,9 @@ export async function resetUserPassword(userId: string, newPassword: string) {
 }
 
 export async function updateEmployee(formData: FormData) {
+  const check = await ensureCallerIsAdmin()
+  if (!check.ok) return { error: check.error }
+
   const userId = formData.get('userId') as string
   const name = formData.get('name') as string
   const email = formData.get('email') as string
@@ -129,20 +151,17 @@ export async function updateEmployee(formData: FormData) {
   const supabaseAdmin = createAdminClient()
 
   try {
-    // Proteksi: Main admin (admin@saungmirza.com) tidak boleh diubah
+    // Proteksi: Main admin tidak boleh diubah
     const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId)
     if (targetUser?.user?.email === 'admin@saungmirza.com') {
       return { error: 'Akun Sistem Utama (admin@saungmirza.com) tidak dapat diubah' }
     }
 
-    // 1. Update di Supabase Auth (email)
-    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
-      {
-        email,
-        user_metadata: { name, phone },
-      }
-    )
+    // 1. Update di Supabase Auth (email & metadata)
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      email,
+      user_metadata: { name, phone },
+    })
 
     if (authError) {
       throw authError
@@ -171,6 +190,9 @@ export async function updateEmployee(formData: FormData) {
 }
 
 export async function deleteEmployee(userId: string) {
+  const check = await ensureCallerIsAdmin()
+  if (!check.ok) return { error: check.error }
+
   if (!userId) {
     return { error: 'ID User wajib diisi' }
   }
@@ -178,7 +200,7 @@ export async function deleteEmployee(userId: string) {
   const supabaseAdmin = createAdminClient()
 
   try {
-    // Proteksi: Main admin (admin@saungmirza.com) tidak boleh dihapus
+    // Proteksi: Main admin tidak boleh dihapus
     const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId)
     if (targetUser?.user?.email === 'admin@saungmirza.com') {
       return { error: 'Akun Sistem Utama (admin@saungmirza.com) tidak dapat dihapus' }
@@ -218,4 +240,3 @@ export async function deleteEmployee(userId: string) {
     return { error: error.message || 'Gagal menghapus akun karyawan' }
   }
 }
-
