@@ -45,7 +45,6 @@ export default async function HistoryPage() {
 
   return (
     <div className="space-y-6">
-
       {/* Header */}
       <div className="space-y-1">
         <h2 className="text-2xl font-bold text-gray-900">
@@ -61,58 +60,35 @@ export default async function HistoryPage() {
       <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-
             {/* Table Header */}
             <thead>
-              <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wider">
-
-                <th className="px-6 py-4">
-                  Tanggal
-                </th>
-
-                <th className="px-6 py-4">
-                  Keterangan
-                </th>
-
-                <th className="px-6 py-4">
-                  Check In
-                </th>
-
-                <th className="px-6 py-4">
-                  Check Out
-                </th>
-
-                <th className="px-6 py-4">
-                  Progress
-                </th>
-
+              <tr className="bg-gray-50 border-b text-xs font-bold text-gray-800 uppercase tracking-wider">
+                <th className="px-6 py-4">Tanggal</th>
+                <th className="px-6 py-4">Keterangan</th>
+                <th className="px-6 py-4">Check In</th>
+                <th className="px-6 py-4">Check Out</th>
+                <th className="px-6 py-4">Progress</th>
               </tr>
             </thead>
 
             {/* Table Body */}
             <tbody className="text-sm divide-y text-gray-600">
-
               {!records || records.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-6 py-12 text-center text-gray-400"
+                    className="px-6 py-12 text-center text-gray-500 font-medium"
                   >
                     Belum ada riwayat presensi tercatat.
                   </td>
                 </tr>
               ) : (
                 records.map((rec) => {
-
                   const isIzin = rec.keterangan === 'Izin'
-                  const isWfaWfh = rec.keterangan === 'WFA/WFH'
+                  const isWfaWfh = rec.keterangan === 'WFA/WFH' || rec.keterangan === 'WFH/WFA'
 
                   return (
-                    <tr
-                      key={rec.id}
-                      className="hover:bg-gray-50/50"
-                    >
-
+                    <tr key={rec.id} className="hover:bg-gray-50/50">
                       {/* Tanggal */}
                       <td className="px-6 py-4 font-semibold text-gray-900 whitespace-nowrap">
                         {formatDate(rec.date)}
@@ -135,13 +111,13 @@ export default async function HistoryPage() {
 
                       {/* Check In */}
                       <td className="px-6 py-4 space-y-1">
-                        <div className="font-semibold text-gray-800">
+                        <div className="font-bold text-gray-900">
                           {formatTime(rec.check_in_time)}
                         </div>
 
                         {!isIzin && (
                           <div
-                            className="text-xs text-gray-400 max-w-50 truncate"
+                            className="text-xs text-gray-500 font-medium max-w-50 truncate"
                             title={rec.check_in_address || ''}
                           >
                             {rec.check_in_address || '-'}
@@ -151,22 +127,18 @@ export default async function HistoryPage() {
 
                       {/* Check Out */}
                       <td className="px-6 py-4 space-y-1">
-
                         {isIzin ? (
-
                           <span className="text-xs text-gray-400 italic">
                             Tidak ada check-out (Izin)
                           </span>
-
                         ) : rec.check_out_time ? (
-
                           <>
-                            <div className="font-semibold text-gray-800">
+                            <div className="font-bold text-gray-900">
                               {formatTime(rec.check_out_time)}
                             </div>
 
                             <div
-                              className="text-xs text-gray-400 max-w-50 truncate"
+                              className="text-xs text-gray-500 font-medium max-w-50 truncate"
                               title={rec.check_out_address || ''}
                             >
                               {rec.check_out_address || '-'}
@@ -188,33 +160,24 @@ export default async function HistoryPage() {
                               </span>
                             )}
                           </>
-
                         ) : (
-
-                          <span className="text-xs text-gray-400 italic">
+                          <span className="text-xs text-gray-500 font-semibold italic">
                             Belum Check-out
                           </span>
-
                         )}
-
                       </td>
 
                       {/* Progress */}
                       <td className="px-6 py-4">
-
                         {isIzin ? (
-
                           <span className="text-xs text-gray-400 italic">
                             -
                           </span>
-
                         ) : rec.progress_note ? (
-
                           <div className="space-y-1">
-
                             {/* Preview progress */}
                             <div
-                              className="max-w-52 truncate text-sm text-gray-600"
+                              className="max-w-52 truncate text-sm text-gray-700"
                               title={rec.progress_note}
                             >
                               {rec.progress_note}
@@ -224,24 +187,17 @@ export default async function HistoryPage() {
                             <ProgressDetailModal
                               progressNote={rec.progress_note}
                             />
-
                           </div>
-
                         ) : (
-
                           <span className="text-xs text-gray-400 italic">
                             Belum ada catatan
                           </span>
-
                         )}
-
                       </td>
-
                     </tr>
                   )
                 })
               )}
-
             </tbody>
           </table>
         </div>

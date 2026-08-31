@@ -61,28 +61,30 @@ export default async function AdminDashboard() {
 
   // Ambil semua riwayat kehadiran — sinkron dengan kolom yang benar-benar dipakai
   const { data: records, error } = await supabase
-    .from('attendance')
-    .select(`
-      id,
-      date,
-      keterangan,
-      check_in_time,
-      check_in_lat,
-      check_in_lng,
-      check_in_address,
-      check_out_time,
-      check_out_lat,
-      check_out_lng,
-      check_out_address,
-      check_out_image_url,
-      progress_note,
-      profiles!attendance_user_id_fkey (
-        name,
-        phone
-      )
-    `)
-    .order('date', { ascending: false })
-    .order('check_in_time', { ascending: false })
+
+  .from('attendance')
+  .select(`
+    id,
+    date,
+    keterangan,
+    check_in_time,
+    check_in_lat,
+    check_in_lng,
+    check_in_address,
+    check_in_image_url,
+    check_out_time,
+    check_out_lat,
+    check_out_lng,
+    check_out_address,
+    check_out_image_url,
+    progress_note,
+    profiles!attendance_user_id_fkey (
+      name,
+      phone
+    )
+  `)
+  .order('date', { ascending: false })
+  .order('check_in_time', { ascending: false })
 
   if (error) {
     console.error('Error loading attendance for admin:', error)

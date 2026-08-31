@@ -121,7 +121,7 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
   // Kasus 1: Izin — selesai begitu check-in
   if (hasCheckedIn && isIzin) {
     return (
-      <div className="bg-gradient-to-br from-amber-50/70 via-white to-slate-50 border border-amber-200/60 rounded-3xl shadow-sm p-6 sm:p-8 text-center space-y-5 max-w-lg mx-auto relative overflow-hidden">
+      <div className="bg-linear-to-br from-amber-50/70 via-white to-slate-50 border border-amber-200/60 rounded-3xl shadow-sm p-6 sm:p-8 text-center space-y-5 max-w-lg mx-auto relative overflow-hidden">
         <div className="w-16 h-16 bg-amber-100/80 border border-amber-200 rounded-2xl flex items-center justify-center mx-auto shadow-xs">
           <span className="text-3xl">📝</span>
         </div>
@@ -146,7 +146,7 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
   // Kasus 2: Hadir/WFA-WFH, sudah check-in & check-out — selesai
   if (hasCheckedIn && hasCheckedOut) {
     return (
-      <div className="bg-gradient-to-br from-emerald-50/60 via-white to-slate-50 border border-emerald-200/60 rounded-3xl shadow-sm p-6 sm:p-8 text-center space-y-6 max-w-lg mx-auto relative overflow-hidden">
+      <div className="bg-linear-to-br from-emerald-50/60 via-white to-slate-50 border border-emerald-200/60 rounded-3xl shadow-sm p-6 sm:p-8 text-center space-y-6 max-w-lg mx-auto relative overflow-hidden">
         <div className="w-20 h-20 bg-emerald-100/80 border border-emerald-200 rounded-3xl flex items-center justify-center mx-auto shadow-xs">
           <svg className="w-10 h-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -194,7 +194,7 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
   // Kasus 3: Belum check-in sama sekali
   if (!hasCheckedIn) {
     return (
-      <div className="bg-gradient-to-br from-blue-50/40 via-white to-slate-50 border border-slate-200/80 rounded-3xl shadow-sm p-6 sm:p-7 space-y-6 max-w-lg mx-auto relative overflow-hidden">
+      <div className="bg-linear-to-br from-blue-50/40 via-white to-slate-50 border border-slate-200/80 rounded-3xl shadow-sm p-6 sm:p-7 space-y-6 max-w-lg mx-auto relative overflow-hidden">
         <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Form Check In</h2>
@@ -268,7 +268,7 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
 
   // Kasus 4: Sudah check-in (Hadir/WFA-WFH), belum check-out
   return (
-    <div className="bg-gradient-to-br from-orange-50/30 via-white to-slate-50 border border-slate-200/80 rounded-3xl shadow-sm p-6 sm:p-7 space-y-6 max-w-lg mx-auto relative overflow-hidden">
+    <div className="bg-linear-to-br from-orange-50/30 via-white to-slate-50 border border-slate-200/80 rounded-3xl shadow-sm p-6 sm:p-7 space-y-6 max-w-lg mx-auto relative overflow-hidden">
       {/* Status Bar */}
       <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900">

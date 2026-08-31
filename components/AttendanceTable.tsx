@@ -16,6 +16,7 @@ interface AttendanceRecord {
   check_out_lng: number | null
   check_out_address: string | null
   check_out_image_url: string | null
+  progress_note: string | null
   profiles: {
     name: string
     phone: string | null
@@ -81,7 +82,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             placeholder="Cari nama karyawan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             suppressHydrationWarning
           />
         </div>
@@ -92,7 +93,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
           <select
             value={filterKeterangan}
             onChange={(e) => setFilterKeterangan(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
             suppressHydrationWarning
           >
             <option value="Semua">Semua Keterangan</option>
@@ -109,7 +110,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             type="date"
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             suppressHydrationWarning
           />
         </div>
@@ -120,7 +121,7 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <tr className="bg-gray-50 border-b text-xs font-bold text-gray-800 uppercase tracking-wider">
                 <th className="px-6 py-4">Tanggal</th>
                 <th className="px-6 py-4">Nama</th>
                 <th className="px-6 py-4">Keterangan</th>
@@ -132,19 +133,19 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             <tbody className="text-sm divide-y text-gray-600">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-600 font-medium">
                     Tidak ada data presensi yang cocok
                   </td>
                 </tr>
               ) : (
                 filteredRecords.map((rec) => (
                   <tr key={rec.id} className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-6 py-4 font-semibold text-gray-900">
                       {new Date(rec.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">{rec.profiles.name}</div>
-                      {rec.profiles.phone && <div className="text-xs text-gray-400">{rec.profiles.phone}</div>}
+                      <div className="font-bold text-gray-900">{rec.profiles.name}</div>
+                      {rec.profiles.phone && <div className="text-xs text-gray-700 font-bold">{rec.profiles.phone}</div>}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -160,14 +161,14 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-800">{formatTime(rec.check_in_time)}</div>
-                      <div className="text-xs text-gray-400 truncate max-w-45" title={rec.check_in_address || ''}>
+                      <div className="font-semibold text-gray-900">{formatTime(rec.check_in_time)}</div>
+                      <div className="text-xs text-gray-700 font-semibold truncate max-w-45" title={rec.check_in_address || ''}>
                         {rec.check_in_address || '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-800">{formatTime(rec.check_out_time)}</div>
-                      <div className="text-xs text-gray-400 truncate max-w-45" title={rec.check_out_address || ''}>
+                      <div className="font-semibold text-gray-900">{formatTime(rec.check_out_time)}</div>
+                      <div className="text-xs text-gray-700 font-semibold truncate max-w-45" title={rec.check_out_address || ''}>
                         {rec.check_out_address || '-'}
                       </div>
                     </td>
@@ -190,12 +191,12 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
       {/* Modal Detail Presensi */}
       {selectedRecord && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             {/* Header */}
             <div className="px-6 py-4 border-b bg-gray-50 flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-800">Detail Presensi</h3>
-                <p className="text-xs text-gray-500">{formatDate(selectedRecord.date)}</p>
+                <h3 className="font-bold text-gray-900">Detail Presensi</h3>
+                <p className="text-xs text-gray-800 font-semibold">{formatDate(selectedRecord.date)}</p>
               </div>
               <button
                 onClick={() => setSelectedRecord(null)}
@@ -206,30 +207,29 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Info Kiri */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-1 flex flex-col">
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Karyawan</label>
-                  <p className="font-bold text-gray-900">{selectedRecord.profiles.name}</p>
-                  {selectedRecord.profiles.phone && <p className="text-sm text-gray-500">{selectedRecord.profiles.phone}</p>}
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-0.5">Karyawan</label>
+                  <p className="font-bold text-gray-900 text-base">{selectedRecord.profiles.name}</p>
+                  {selectedRecord.profiles.phone && <p className="text-sm text-gray-800 font-medium">{selectedRecord.profiles.phone}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Keterangan</label>
-                  <p className="font-semibold text-gray-800">{selectedRecord.keterangan}</p>
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-0.5">Keterangan</label>
+                  <p className="font-bold text-gray-900">{selectedRecord.keterangan}</p>
                 </div>
 
                 {/* Check In Detail */}
                 <div className="border-t pt-4 space-y-2">
-                  <h4 className="font-bold text-sm text-blue-600">CHECK IN DETAILS</h4>
+                  <h4 className="font-bold text-sm text-blue-600 uppercase tracking-wider">Detail Check In</h4>
                   <div>
-                    <label className="text-xs text-gray-400">Jam Check In</label>
-                    <p className="text-sm font-semibold">{formatTime(selectedRecord.check_in_time)}</p>
+                    <label className="text-xs text-gray-800 font-bold block mb-0.5">Jam Check In</label>
+                    <p className="text-sm font-bold text-gray-900">{formatTime(selectedRecord.check_in_time)}</p>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Alamat</label>
-                    <p className="text-sm leading-relaxed">{selectedRecord.check_in_address || '-'}</p>
+                    <label className="text-xs text-gray-800 font-bold block mb-0.5">Alamat</label>
+                    <p className="text-sm leading-relaxed text-gray-900 font-medium">{selectedRecord.check_in_address || '-'}</p>
                   </div>
                   <div>
                     <a
@@ -249,16 +249,16 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
 
                 {/* Check Out Detail */}
                 <div className="border-t pt-4 space-y-2">
-                  <h4 className="font-bold text-sm text-orange-600">CHECK OUT DETAILS</h4>
+                  <h4 className="font-bold text-sm text-orange-600 uppercase tracking-wider">Detail Check Out</h4>
                   {selectedRecord.check_out_time ? (
                     <>
                       <div>
-                        <label className="text-xs text-gray-400">Jam Check Out</label>
-                        <p className="text-sm font-semibold">{formatTime(selectedRecord.check_out_time)}</p>
+                        <label className="text-xs text-gray-800 font-bold block mb-0.5">Jam Check Out</label>
+                        <p className="text-sm font-bold text-gray-900">{formatTime(selectedRecord.check_out_time)}</p>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400">Alamat</label>
-                        <p className="text-sm leading-relaxed">{selectedRecord.check_out_address || '-'}</p>
+                        <label className="text-xs text-gray-800 font-bold block mb-0.5">Alamat</label>
+                        <p className="text-sm leading-relaxed text-gray-900 font-medium">{selectedRecord.check_out_address || '-'}</p>
                       </div>
                       {selectedRecord.check_out_lat && selectedRecord.check_out_lng && (
                         <div>
@@ -276,43 +276,18 @@ export default function AttendanceTable({ initialRecords }: AttendanceTableProps
                           </a>
                         </div>
                       )}
+
+                      {/* Progress Note */}
+                      <div className="border-t pt-3 space-y-1">
+                        <label className="text-xs text-indigo-600 font-bold block">PROGRESS NOTE</label>
+                        <p className="text-xs leading-relaxed text-gray-900 bg-slate-50 border border-slate-200 rounded-xl p-3.5 italic font-medium whitespace-pre-wrap">
+                          {selectedRecord.progress_note || 'Tidak ada catatan progress.'}
+                        </p>
+                      </div>
                     </>
                   ) : (
-                    <p className="text-xs text-gray-400 italic">Belum melakukan check-out</p>
+                    <p className="text-xs text-gray-700 font-bold italic">Belum melakukan check-out</p>
                   )}
-                </div>
-              </div>
-
-              {/* Info Kanan (Foto) */}
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Foto Check In</label>
-                  <div className="border rounded-xl overflow-hidden bg-gray-50 h-44 flex items-center justify-center">
-                    {selectedRecord.check_in_image_url ? (
-                      <img
-                        src={selectedRecord.check_in_image_url}
-                        alt="Foto Check In"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-gray-400 text-xs">Foto tidak tersedia</span>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Foto Progres Check Out</label>
-                  <div className="border rounded-xl overflow-hidden bg-gray-50 h-44 flex items-center justify-center">
-                    {selectedRecord.check_out_image_url ? (
-                      <img
-                        src={selectedRecord.check_out_image_url}
-                        alt="Foto Progres"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-gray-400 text-xs italic">Tidak ada foto progres</span>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
