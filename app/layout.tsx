@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "SMC E-Presence", // Ubah nama website di sini
   description: "Sistem Manajemen Presensi & Magang",
   icons: {
-    icon: "/favicon.ico", // Atau sesuaikan dengan file gambar kamu di folder public, misal "/logo.png"
+    icon: "/Logo.ico", // Atau sesuaikan dengan file gambar kamu di folder public, misal "/logo.png"
   },
 };
 
