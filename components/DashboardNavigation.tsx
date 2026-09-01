@@ -64,9 +64,11 @@ export default function DashboardNavigation({ userName, isAdmin }: DashboardNavi
       <header className="md:hidden bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 py-3 relative">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-sm text-white">
-              S
-            </div>
+            <img
+              src="/logo.svg"
+              alt="Logo Presensi SMC"
+              className="w-8 h-8 rounded-full object-contain bg-white shrink-0 shadow-sm"
+            />
             <div>
               <h1 className="text-sm font-bold tracking-tight text-white">Presensi SMC</h1>
               <p className="text-[10px] text-slate-400">Saung Mirza Community</p>
@@ -146,9 +148,11 @@ export default function DashboardNavigation({ userName, isAdmin }: DashboardNavi
         <div>
           {/* Logo / Branding */}
           <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-base text-white">
-              S
-            </div>
+            <img
+              src="/logo.svg"
+              alt="Logo Presensi SMC"
+              className="w-10 h-10 rounded-full object-contain bg-white shrink-0 shadow-sm"
+            />
             <div>
               <h1 className="text-base font-bold tracking-tight text-white">Presensi SMC</h1>
               <p className="text-[11px] text-slate-400">Saung Mirza Community</p>
