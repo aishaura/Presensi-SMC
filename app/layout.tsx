@@ -15,9 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SMC E-Presence", // Ubah nama website di sini
   description: "Sistem Manajemen Presensi & Magang",
-  icons: {
-    icon: "icon.ico", // Atau sesuaikan dengan file gambar kamu di folder public, misal "/logo.png"
-  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
