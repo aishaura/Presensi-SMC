@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendWhatsApp } from '@/lib/whatsapp'
+import { sendRecapEmail } from '@/lib/email'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       .from('attendance')
       .select(`
         keterangan, check_in_time, check_out_time,
-        check_out_address, check_out_image_url,
-        profile:profiles(name)
+        check_out_address, check_out_image_url, progress_note,
+        profiles!attendance_user_id_fkey (name)
       `)
       .eq('date', todayStr)
       .order('check_in_time', { ascending: true })
@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
-    const message = formatRecapMessage(todayStr, attendances ?? [])
-    const sent = await sendWhatsApp(message)
+    const html = formatRecapEmail(todayStr, attendances ?? [])
+    const sent = await sendRecapEmail(`Rekap Presensi — ${todayStr}`, html)
 
     return NextResponse.json({ success: sent, totalRecords: attendances?.length ?? 0 })
   } catch (err: any) {
@@ -41,36 +41,78 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function formatRecapMessage(date: string, records: any[]): string {
+function formatRecapEmail(date: string, records: any[]): string {
+  const formattedDate = new Date(date).toLocaleDateString('id-ID', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  })
+
   if (records.length === 0) {
-    return `📋 *Rekap Presensi ${date}*\n\nTidak ada karyawan yang melakukan presensi hari ini.`
+    return `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>📋 Rekap Presensi</h2>
+        <p style="color:#666;">${formattedDate}</p>
+        <p>Tidak ada karyawan yang melakukan presensi hari ini.</p>
+      </div>
+    `
   }
 
-  const lines = records.map((r, i) => {
-    const name = r.profile?.name ?? 'Tidak diketahui'
+  const rows = records.map((r) => {
+    const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
+    const name = profile?.name ?? 'Tidak diketahui'
     const checkIn = r.check_in_time
       ? new Date(r.check_in_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
       : '-'
 
-    // Izin: format ringkas, gak perlu jam pulang/lokasi/foto
     if (r.keterangan === 'Izin') {
-      return `${i + 1}. *${name}* — Izin (diajukan pukul ${checkIn})`
+      return `
+        <tr>
+          <td style="padding:12px; border-bottom:1px solid #eee;"><strong>${name}</strong></td>
+          <td style="padding:12px; border-bottom:1px solid #eee;">
+            <span style="background:#fef3c7; color:#92400e; padding:2px 10px; border-radius:12px; font-size:12px;">Izin</span>
+          </td>
+          <td style="padding:12px; border-bottom:1px solid #eee;" colspan="3">Diajukan pukul ${checkIn}</td>
+        </tr>
+      `
     }
 
     const checkOut = r.check_out_time
       ? new Date(r.check_out_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
       : 'Belum check-out'
 
-    let entry = `${i + 1}. *${name}* (${r.keterangan})\n   In: ${checkIn} | Out: ${checkOut}`
+    const badgeColor = r.keterangan === 'WFA/WFH' ? '#ede9fe;color:#5b21b6' : '#dcfce7;color:#166534'
 
-    if (r.check_out_address) {
-      entry += `\n   📍 ${r.check_out_address}`
-    }
-    if (r.check_out_image_url) {
-      entry += `\n   📷 Bukti: ${r.check_out_image_url}`
-    }
-    return entry
-  })
+    return `
+      <tr>
+        <td style="padding:12px; border-bottom:1px solid #eee;"><strong>${name}</strong></td>
+        <td style="padding:12px; border-bottom:1px solid #eee;">
+          <span style="background:${badgeColor.split(';')[0]}; color:${badgeColor.split(';')[1].replace('color:','')}; padding:2px 10px; border-radius:12px; font-size:12px;">${r.keterangan}</span>
+        </td>
+        <td style="padding:12px; border-bottom:1px solid #eee;">${checkIn} - ${checkOut}</td>
+        <td style="padding:12px; border-bottom:1px solid #eee; font-size:13px; color:#555;">${r.progress_note ?? '-'}</td>
+        <td style="padding:12px; border-bottom:1px solid #eee;">
+          ${r.check_out_image_url ? `<a href="${r.check_out_image_url}" style="color:#2563eb;">Lihat Foto</a>` : '-'}
+        </td>
+      </tr>
+    `
+  }).join('')
 
-  return `📋 *Rekap Presensi ${date}*\n\n${lines.join('\n\n')}\n\nTotal: ${records.length} karyawan`
+  return `
+    <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
+      <h2 style="margin-bottom:4px;">📋 Rekap Presensi</h2>
+      <p style="color:#666; margin-top:0;">${formattedDate}</p>
+      <table style="width:100%; border-collapse:collapse; margin-top:16px;">
+        <thead>
+          <tr style="background:#f9fafb; text-align:left; font-size:12px; text-transform:uppercase; color:#6b7280;">
+            <th style="padding:12px;">Nama</th>
+            <th style="padding:12px;">Status</th>
+            <th style="padding:12px;">Jam</th>
+            <th style="padding:12px;">Catatan</th>
+            <th style="padding:12px;">Foto</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p style="margin-top:16px; color:#666; font-size:13px;">Total: ${records.length} karyawan</p>
+    </div>
+  `
 }
