@@ -49,7 +49,7 @@ function formatRecapEmail(date: string, records: any[]): string {
   if (records.length === 0) {
     return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>📋 Rekap Presensi</h2>
+        <h2>📋 Rekap Presensi Saung Mirza</h2>
         <p style="color:#666;">${formattedDate}</p>
         <p>Tidak ada karyawan yang melakukan presensi hari ini.</p>
       </div>
