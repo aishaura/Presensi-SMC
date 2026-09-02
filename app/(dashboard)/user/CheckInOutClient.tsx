@@ -9,7 +9,8 @@ interface Props {
 }
 
 const KETERANGAN_OPTIONS: Keterangan[] = ['Hadir', 'Izin', 'WFA/WFH']
-const MAX_NOTE_LENGTH = 500
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_NOTE_LENGTH = 500 // ← tambahkan ini
 
 export default function CheckInOutClient({ initialAttendance }: Props) {
   const [attendance, setAttendance] = useState<Attendance | null>(initialAttendance)
@@ -30,6 +31,14 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`Ukuran foto maksimal 5MB (file kamu ${(file.size / 1024 / 1024).toFixed(1)}MB). Coba pilih foto lain.`)
+      e.target.value = ''
+      return
+    }
+
+    setError(null)
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
   }
@@ -102,12 +111,12 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
       setAttendance((prev) =>
         prev
           ? {
-              ...prev,
-              check_out_time: result.data.checkOutTime,
-              check_out_address: result.data.address,
-              check_out_image_url: result.data.imageUrl,
-              progress_note: result.data.progressNote,
-            }
+            ...prev,
+            check_out_time: result.data.checkOutTime,
+            check_out_address: result.data.address,
+            check_out_image_url: result.data.imageUrl,
+            progress_note: result.data.progressNote,
+          }
           : prev
       )
       setQuote(result.quote ?? null)
@@ -230,11 +239,10 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
                 key={opt}
                 type="button"
                 onClick={() => setKeterangan(opt)}
-                className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 ${
-                  keterangan === opt
+                className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 ${keterangan === opt
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                }`}
+                  }`}
               >
                 {opt}
               </button>
@@ -331,7 +339,7 @@ export default function CheckInOutClient({ initialAttendance }: Props) {
             </div>
             <span className="text-xs font-semibold text-slate-700 mt-2.5">Ketuk untuk unggah foto</span>
             <span className="text-[11px] text-slate-400 mt-0.5">PNG, JPG (Maks 5MB)</span>
-            <input type="file" accept="image/*" capture="environment" onChange={handleImageChange} className="hidden" />
+            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
           </label>
         )}
       </div>
